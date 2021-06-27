@@ -67,6 +67,11 @@ public class ServiceImpl implements IService{
         return addStakeholders(reqDefRequest, newRequest);
     }
 
+    /**
+     * 干系人询问当前状态
+     * @param externalID 询问者在外部系统的唯一 id
+     * @return 返回体, 正常返回当前进行中的 request 流程, 及每个流程当前可执行的 Action
+     */
     @Override
     public ResponseBean<?> getCurrentState(String externalID) {
         List<ReqStateEntry> reqStateEntries = getReqStateEntries(externalID);
@@ -79,6 +84,13 @@ public class ServiceImpl implements IService{
         return response;
     }
 
+    /**
+     * 干系人申领 Action, 由 ToyFlow 检查是否能执行
+     * @param externalID
+     * @param requestID
+     * @param requestActionID
+     * @return 若可以执行, 返回当前被请求 request 的 data
+     */
     @Override
     public ResponseBean<?> checkActionRequest(String externalID, String requestID, String requestActionID) {
         ActValidRespBody body = checkValid(externalID, requestID, requestActionID);
@@ -92,6 +104,14 @@ public class ServiceImpl implements IService{
         return response;
     }
 
+    /**
+     * 报告 Action 已经完成
+     * @param blockerExternalID
+     * @param requestID
+     * @param requestActionID
+     * @param updatedRequestData
+     * @return
+     */
     @Override
     public ResponseBean<?> reportActionCompleted(String blockerExternalID, String requestID,
                                                  String requestActionID, Map<String, String> updatedRequestData) {
@@ -121,6 +141,11 @@ public class ServiceImpl implements IService{
         return getCurrentState(blockerExternalID);
     }
 
+    /**
+     * 仅查看 当前数据
+     * @param requestID
+     * @return
+     */
     @Override
     public ResponseBean<?> getRequestData(String requestID) {
         Map<String, String> requestDataMap = getRequestDataMap(requestID);
