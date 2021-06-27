@@ -51,7 +51,7 @@ drop table if exists `user`;
 create table `user`(
     `id`    varchar(20) not null ,
     `name`  varchar(100) not null ,
-    `external_id` varchar(100) not null ,
+    `external_id` varchar(100) not null unique ,
     `description`   varchar(500) not null ,
     primary key (`id`)
 );
@@ -141,6 +141,8 @@ create table `request`(
     `request_time`  datetime not null ,
     `requester_user_id` varchar(20) not null ,
     `current_state` varchar(20) not null ,
+    `blocked`       bool not null default false,
+    `blocker_external_id`       varchar(20),
     primary key (`id`),
     foreign key (`process_id`) references `process`(`id`),
     foreign key (`requester_user_id`) references `user`(`id`),
@@ -157,12 +159,14 @@ create table `request_data`(
     foreign key (`request_id`) references `request`(`id`)
 );
 
-drop table if exists `request_actions`;
-create table `request_actions`(
+drop table if exists `request_action`;
+create table `request_action` (
     `id`    varchar(20) not null ,
-    `request_id`    varchar(20) not null ,
-    `transition_id` varchar(20) not null ,
-    `action_id`     varchar(20) not null ,
+    `request_id`    varchar(20) not null,
+    `transition_id` varchar(20) not null,
+    `action_id`     varchar(20) not null,
+    `active`      bool not null default true,
+    `completed`   bool not null default false,
     primary key (`id`),
     foreign key (`request_id`) references `request`(`id`),
     foreign key (`transition_id`) references `transition`(`id`),
