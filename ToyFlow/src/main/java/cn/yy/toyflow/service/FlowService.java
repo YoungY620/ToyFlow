@@ -5,7 +5,7 @@ import cn.yy.toyflow.dto.ResponseBean;
 
 import java.util.Map;
 
-public interface IService {
+public interface FlowService {
     ResponseBean<?> newRequest(ReqDefRequest request);
 
     ResponseBean<?> getCurrentState(String externalID);

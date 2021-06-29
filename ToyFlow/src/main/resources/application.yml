@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/toyflow?useUnicode=true&characterEncoding=utf8
+    password: 123456
+    username: root
+    driver-class-name: com.mysql.cj.jdbc.Driver

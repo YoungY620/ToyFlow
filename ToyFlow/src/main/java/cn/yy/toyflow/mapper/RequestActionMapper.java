@@ -46,18 +46,14 @@ public interface RequestActionMapper extends BaseMapper<RequestAction> {
             "       s.name as cuurStateName, st.name as currStateType, ra.id requestActionId\n" +
             "from `request_action` ra, `process` p, `request` r, `user` u, `state` s, `state_type` st,\n" +
             "     `action` a, `state` s2, `transition` t\n" +
-            "where ra.request_id=${id} and ra.request_id = r.id and r.process_id = p.id\n" +
+            "where ra.id=${id} and ra.request_id = r.id and r.process_id = p.id\n" +
             "  and r.current_state = s.id and r.requester_user_id=u.id and st.id = s.state_type_id\n" +
             "  and ra.action_id=a.id and ra.transition_id=t.id and s2.id=t.next_state;")
-    @Results(value = {
-            @Result(property = "requestActions", column = "requestActionId",
-                    many = @Many(select = "cn.yy.toyflow.mapper.RequestActionMapper.getReqActEntriesByRAId"))
-    })
-    ReqStateEntry getRequestStateEntryById(@Param("id") String requestId);
+    ReqStateEntry getRequestStateEntryByReqActId(@Param("id") String requestActionID);
 
-    @Select("select ra.id, a.id actionID, a.name actionName,\n" +
+    @Select("select distinct ra.id, a.id actionID, a.name actionName,\n" +
             "       s2.id as nextStateID, s2.name as nextStateName\n" +
             "from `request_action` ra, `action` a, `state` s2, `transition` t\n" +
             "where ra.id=${id} and ra.action_id=a.id and ra.transition_id=t.id and s2.id=t.next_state;")
-    List<ReqActEntry> getReqActEntriesByRAId(@Param("id") String id);
+    ReqActEntry getReqActEntriesByRAId(@Param("id") String requestActionId);
 }

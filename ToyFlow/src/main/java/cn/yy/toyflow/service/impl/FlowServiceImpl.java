@@ -7,7 +7,7 @@ import cn.yy.toyflow.mapper.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import cn.yy.toyflow.service.IService;
+import cn.yy.toyflow.service.FlowService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-public class ServiceImpl implements IService{
+public class FlowServiceImpl implements FlowService {
     @Autowired
     RequestMapper requestMapper;
     @Autowired
@@ -70,7 +70,7 @@ public class ServiceImpl implements IService{
     /**
      * 干系人询问当前状态
      * @param externalID 询问者在外部系统的唯一 id
-     * @return 返回体, 正常返回当前进行中的 request 流程, 及每个流程当前可执行的 Action
+     * @return 返回体, 正常返回当前进行中的 request 流程, 类型为 CurrStateRespBody , 及每个流程当前可执行的 Action
      */
     @Override
     public ResponseBean<?> getCurrentState(String externalID) {
@@ -129,11 +129,11 @@ public class ServiceImpl implements IService{
 
         List<RequestData> requestDataList = updatedRequestData.entrySet().stream().map(e->{
             RequestData rd = new RequestData();
-            rd.setKey(e.getKey()); rd.setVal(e.getValue());
+            rd.setName(e.getKey()); rd.setName(e.getValue());
             return rd;
         }).collect(Collectors.toList());
         for (RequestData rd: requestDataList){
-            rd.setVal(updatedRequestData.get(rd.getKey()));
+            rd.setValue(updatedRequestData.get(rd.getName()));
         }
         for (RequestData rd: requestDataList){
             requestDataMapper.updateById(rd);
@@ -187,6 +187,8 @@ public class ServiceImpl implements IService{
         String nextState = transitionMapper.selectById(transitionID).getNextState();
         request.setCurrentState(nextState);
         pushNewRequestActions(request);
+        requestMapper.updateById(request);
+        requestActionMapper.updateById(requestAction);
     }
 
     private void pushNewRequestActions(@NotNull Request request) {
@@ -229,7 +231,6 @@ public class ServiceImpl implements IService{
         }
         return body;
     }
-
     @NotNull
     private Map<String, String> getRequestDataMap(String requestID) {
         List<RequestData> dataEntries = requestDataMapper.selectList(
@@ -237,7 +238,7 @@ public class ServiceImpl implements IService{
         );
         Map<String, String> dataMap = new HashMap<>();
         for (RequestData e: dataEntries){
-            dataMap.put(e.getKey(),e.getVal());
+            dataMap.put(e.getName(),e.getValue());
         }
         return dataMap;
     }
@@ -248,15 +249,20 @@ public class ServiceImpl implements IService{
         ).getId();
 
         List<RequestAction> openActions = requestActionMapper.selectRelavantOpenActions(userID);
-        List<String> openRequestIds = openActions
-                .stream().map(RequestAction::getRequestId)
-                .distinct().collect(Collectors.toList());
-        List<ReqStateEntry> reqStateEntries = new ArrayList<>();
-        for (String requestId:openRequestIds){
-            ReqStateEntry entry = requestActionMapper.getRequestStateEntryById(requestId);
-            reqStateEntries.add(entry);
+        Map<String,ReqStateEntry> reqStateEntries = new HashMap<>();
+        for (RequestAction ra:openActions){
+            String reqActID = ra.getId();
+            ReqStateEntry entry;
+            if (reqStateEntries.containsKey(ra.getRequestId())){
+                entry = reqStateEntries.get(ra.getRequestId());
+            }else{
+                entry = requestActionMapper.getRequestStateEntryByReqActId(reqActID);
+                entry.setRequestActions(new ArrayList<>());
+                reqStateEntries.putIfAbsent(entry.getId(),entry);
+            }
+            entry.getRequestActions().add(requestActionMapper.getReqActEntriesByRAId(ra.getId()));
         }
-        return reqStateEntries;
+        return new ArrayList<>(reqStateEntries.values());
     }
 
     private ResponseBean<?> addStakeholders(ReqDefRequest request, Request newRequest) {

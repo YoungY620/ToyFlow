@@ -108,7 +108,7 @@ create table `group_member`(
                                 `group_id`  varchar(20) not null ,
                                 `user_id`   varchar(20) not null ,
                                 primary key (`id`),
-                                foreign key (`group_id`) references `group`(`id`),
+                                foreign key (group_id) references `group`(`id`),
                                 foreign key (`user_id`) references `user`(`id`)
 );
 

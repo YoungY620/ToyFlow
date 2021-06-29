@@ -1,8 +1,11 @@
 package cn.yy.toyflow.entity;
 
 import java.io.Serializable;
+
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.ibatis.annotations.Property;
 
 /**
  * <p>
@@ -21,10 +24,9 @@ public class RequestData implements Serializable {
     private String id;
 
     private String requestId;
+    private String name;
 
-    private String key;
-
-    private String val;
+    private String value;
 
 
 }

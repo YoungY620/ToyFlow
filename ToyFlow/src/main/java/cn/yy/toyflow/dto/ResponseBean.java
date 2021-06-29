@@ -2,8 +2,10 @@ package cn.yy.toyflow.dto;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @EqualsAndHashCode
+@ToString
 public class ResponseBean <T> {
     private String stateCode;
     private T data;
